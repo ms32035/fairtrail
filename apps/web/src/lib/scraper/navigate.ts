@@ -5,9 +5,10 @@ export interface FlightSearchParams {
   dateTo: Date;
 }
 
-interface NavigationResult {
+export interface NavigationResult {
   html: string;
   url: string;
+  resultsFound: boolean;
 }
 
 function buildGoogleFlightsUrl(params: FlightSearchParams): string {
@@ -60,16 +61,18 @@ export async function navigateGoogleFlights(
     }
 
     // Wait for flight results — look for price elements
+    let resultsFound = false;
     try {
       await page.waitForSelector('[data-gs]', { timeout: 15_000 });
+      resultsFound = true;
     } catch {
-      // Results may have loaded differently — continue with what we have
+      // Selector not found — page may be blocked, CAPTCHA'd, or empty
     }
 
     const html = await page.content();
 
     await context.close();
-    return { html, url };
+    return { html, url, resultsFound };
   } finally {
     await browser.close();
   }
