@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { NextRequest } from 'next/server';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import { prisma } from '@/lib/prisma';
@@ -56,6 +57,8 @@ export async function POST(request: NextRequest) {
     airlines = [...new Set(flights.map((f: { airline: string }) => f.airline))];
   }
 
+  const deleteToken = crypto.randomUUID();
+
   const query = await prisma.query.create({
     data: {
       rawInput,
@@ -72,6 +75,7 @@ export async function POST(request: NextRequest) {
       timePreference: timePreference || 'any',
       cabinClass: cabinClass || 'economy',
       expiresAt,
+      deleteToken,
     },
   });
 
@@ -91,5 +95,5 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  return apiSuccess({ id: query.id }, 201);
+  return apiSuccess({ id: query.id, deleteToken }, 201);
 }
