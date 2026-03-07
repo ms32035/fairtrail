@@ -33,7 +33,7 @@ export async function runScrapeForQuery(queryId: string): Promise<ScrapeResult> 
       : query;
 
     // Navigate to Google Flights
-    const { html, url } = await navigateGoogleFlights(searchParams);
+    const { html, url, resultsFound } = await navigateGoogleFlights(searchParams);
     const travelDateFallback = searchParams.dateFrom.toISOString().split('T')[0]!;
 
     // Extract prices via LLM with user's filters
@@ -44,7 +44,7 @@ export async function runScrapeForQuery(queryId: string): Promise<ScrapeResult> 
       timePreference: query.timePreference,
       cabinClass: query.cabinClass,
     };
-    const { prices, usage, failureReason } = await extractPrices(html, url, travelDateFallback, filters);
+    const { prices, usage, failureReason } = await extractPrices(html, url, travelDateFallback, filters, undefined, resultsFound);
 
     // Calculate cost
     const config = await prisma.extractionConfig.findFirst({ where: { id: 'singleton' } });
@@ -87,9 +87,10 @@ export async function runScrapeForQuery(queryId: string): Promise<ScrapeResult> 
 
     // Build error message for 0-result runs
     const failureMessages: Record<string, string> = {
-      no_json_in_response: 'Extraction failed — LLM response contained no parseable JSON. Google Flights may have blocked the request or changed its layout.',
-      empty_extraction: 'LLM returned no flights — the route may not exist or dates may be too far out.',
-      all_filtered_out: 'Flights were found but none matched the query filters (price/stops/airline).',
+      page_not_loaded: 'Google Flights did not load results — page blocked, CAPTCHA, or timeout. [data-gs] selector not found.',
+      no_json_in_response: 'LLM response contained no parseable JSON array. Page HTML may be a consent wall, error page, or empty shell.',
+      empty_extraction: 'LLM parsed the page but returned 0 flights. Page likely loaded without flight content (rate-limited or empty response).',
+      all_filtered_out: 'Flights were extracted but all removed by query filters (price/stops/airline).',
     };
     const errorMsg = failureReason ? failureMessages[failureReason] : undefined;
 

@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const prices = await cached<PriceData[]>(cacheKey, async () => {
-      const { html, url } = await navigateGoogleFlights({
+      const { html, url, resultsFound } = await navigateGoogleFlights({
         origin,
         destination,
         dateFrom: from,
@@ -77,7 +77,8 @@ export async function POST(request: NextRequest) {
         url,
         travelDateFallback,
         filters,
-        PREVIEW_MAX_RESULTS
+        PREVIEW_MAX_RESULTS,
+        resultsFound
       );
 
       // Log API usage
@@ -103,11 +104,12 @@ export async function POST(request: NextRequest) {
 
       if (failureReason) {
         const messages: Record<string, string> = {
-          no_json_in_response: `Flight extraction failed — the page for ${origin} → ${destination} could not be parsed. Google Flights may have blocked the request or changed its layout.`,
-          empty_extraction: `No flights found for ${origin} → ${destination} on ${dateFrom} to ${dateTo}. The route may not exist or dates may be too far out.`,
+          page_not_loaded: 'Google Flights did not load flight results — the page may have been blocked or served a CAPTCHA. Please try again in a few minutes.',
+          no_json_in_response: 'We scraped the page but could not extract any flight data. Google Flights may have changed its layout or returned an error page. Please try again.',
+          empty_extraction: 'The page loaded but contained no flight results. Google may be rate-limiting our requests. Please try again in a few minutes.',
           all_filtered_out: `Flights were found for ${origin} → ${destination}, but none matched your filters. Try relaxing price, stops, or airline preferences.`,
         };
-        throw new Error(messages[failureReason] ?? 'No flights could be extracted');
+        throw new Error(messages[failureReason] ?? 'Flight extraction failed unexpectedly. Please try again.');
       }
 
       return extracted;

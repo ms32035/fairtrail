@@ -79,6 +79,7 @@ General rules:
 }
 
 export type ExtractionFailureReason =
+  | 'page_not_loaded'
   | 'no_json_in_response'
   | 'empty_extraction'
   | 'all_filtered_out';
@@ -94,8 +95,13 @@ export async function extractPrices(
   searchUrl: string,
   travelDateFallback: string,
   filters: QueryFilters = { maxPrice: null, maxStops: null, preferredAirlines: [], timePreference: 'any', cabinClass: 'economy' },
-  maxResults: number = DEFAULT_MAX_RESULTS
+  maxResults: number = DEFAULT_MAX_RESULTS,
+  resultsFound: boolean = true
 ): Promise<ExtractionResult> {
+  if (!resultsFound) {
+    return { prices: [], usage: { inputTokens: 0, outputTokens: 0 }, failureReason: 'page_not_loaded' };
+  }
+
   const config = await prisma.extractionConfig.findFirst({
     where: { id: 'singleton' },
   });
