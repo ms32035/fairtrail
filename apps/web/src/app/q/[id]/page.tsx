@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { PriceChart } from '@/components/PriceChart';
 import { BestPrice } from '@/components/BestPrice';
 import { PriceHistory } from '@/components/PriceHistory';
+import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { DeleteTracker } from '@/components/DeleteTracker';
 import styles from './page.module.css';
@@ -114,9 +115,10 @@ export default async function ChartPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className={styles.themeToggle}>
+      <nav className={styles.topBar}>
+        <Link href="/" className={styles.brand}>Fairtrail</Link>
         <ThemeToggle />
-      </div>
+      </nav>
       <header className={styles.header}>
         <div className={styles.route}>
           <span className={styles.code}>{query.origin}</span>
