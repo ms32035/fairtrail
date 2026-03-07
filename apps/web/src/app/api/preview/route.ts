@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
         cabinClass: cabinClass || 'economy',
       };
 
-      const { prices: extracted, usage } = await extractPrices(
+      const { prices: extracted, usage, failureReason } = await extractPrices(
         html,
         url,
         travelDateFallback,
@@ -100,6 +100,15 @@ export async function POST(request: NextRequest) {
           durationMs: 0,
         },
       });
+
+      if (failureReason) {
+        const messages: Record<string, string> = {
+          no_json_in_response: `Flight extraction failed — the page for ${origin} → ${destination} could not be parsed. Google Flights may have blocked the request or changed its layout.`,
+          empty_extraction: `No flights found for ${origin} → ${destination} on ${dateFrom} to ${dateTo}. The route may not exist or dates may be too far out.`,
+          all_filtered_out: `Flights were found for ${origin} → ${destination}, but none matched your filters. Try relaxing price, stops, or airline preferences.`,
+        };
+        throw new Error(messages[failureReason] ?? 'No flights could be extracted');
+      }
 
       return extracted;
     });

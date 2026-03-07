@@ -55,7 +55,7 @@ export function FlightPicker({
         <div className={styles.headerLeft}>
           <h3 className={styles.title}>Available flights</h3>
           <span className={styles.counter}>
-            {selected.size} of {MAX_SELECTIONS} selected
+            {selected.size} of {Math.min(flights.length, MAX_SELECTIONS)} selected
           </span>
         </div>
         <div className={styles.headerActions}>
