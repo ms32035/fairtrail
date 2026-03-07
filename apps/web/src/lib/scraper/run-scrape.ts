@@ -44,7 +44,7 @@ export async function runScrapeForQuery(queryId: string): Promise<ScrapeResult> 
       timePreference: query.timePreference,
       cabinClass: query.cabinClass,
     };
-    const { prices, usage } = await extractPrices(html, url, travelDateFallback, filters);
+    const { prices, usage, failureReason } = await extractPrices(html, url, travelDateFallback, filters);
 
     // Calculate cost
     const config = await prisma.extractionConfig.findFirst({ where: { id: 'singleton' } });
@@ -85,22 +85,32 @@ export async function runScrapeForQuery(queryId: string): Promise<ScrapeResult> 
       });
     }
 
+    // Build error message for 0-result runs
+    const failureMessages: Record<string, string> = {
+      no_json_in_response: 'Extraction failed — LLM response contained no parseable JSON. Google Flights may have blocked the request or changed its layout.',
+      empty_extraction: 'LLM returned no flights — the route may not exist or dates may be too far out.',
+      all_filtered_out: 'Flights were found but none matched the query filters (price/stops/airline).',
+    };
+    const errorMsg = failureReason ? failureMessages[failureReason] : undefined;
+
     // Update fetch run
     await prisma.fetchRun.update({
       where: { id: fetchRun.id },
       data: {
-        status: prices.length > 0 ? 'success' : 'partial',
+        status: prices.length > 0 ? 'success' : 'failed',
         snapshotsCount: prices.length,
         extractionCost,
+        error: errorMsg,
         completedAt: new Date(),
       },
     });
 
     return {
       queryId,
-      status: prices.length > 0 ? 'success' : 'partial',
+      status: prices.length > 0 ? 'success' : 'failed',
       snapshotsCount: prices.length,
       extractionCost,
+      error: errorMsg,
     };
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);

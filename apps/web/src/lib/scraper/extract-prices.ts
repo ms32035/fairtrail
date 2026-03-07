@@ -78,13 +78,24 @@ General rules:
 - If you cannot extract any flights, return an empty array []`;
 }
 
+export type ExtractionFailureReason =
+  | 'no_json_in_response'
+  | 'empty_extraction'
+  | 'all_filtered_out';
+
+export interface ExtractionResult {
+  prices: PriceData[];
+  usage: ExtractionUsage;
+  failureReason?: ExtractionFailureReason;
+}
+
 export async function extractPrices(
   html: string,
   searchUrl: string,
   travelDateFallback: string,
   filters: QueryFilters = { maxPrice: null, maxStops: null, preferredAirlines: [], timePreference: 'any', cabinClass: 'economy' },
   maxResults: number = DEFAULT_MAX_RESULTS
-): Promise<{ prices: PriceData[]; usage: ExtractionUsage }> {
+): Promise<ExtractionResult> {
   const config = await prisma.extractionConfig.findFirst({
     where: { id: 'singleton' },
   });
@@ -116,15 +127,23 @@ ${trimmedHtml}`;
 
   const jsonMatch = result.content.match(/\[[\s\S]*\]/);
   if (!jsonMatch) {
-    return { prices: [], usage: result.usage };
+    return { prices: [], usage: result.usage, failureReason: 'no_json_in_response' };
   }
 
   const raw = JSON.parse(jsonMatch[0]) as PriceData[];
+
+  if (raw.length === 0) {
+    return { prices: [], usage: result.usage, failureReason: 'empty_extraction' };
+  }
 
   // Filter out obviously invalid entries
   const prices = raw.filter(
     (p) => p.price > 0 && p.airline && p.airline.length > 0
   );
+
+  if (prices.length === 0) {
+    return { prices: [], usage: result.usage, failureReason: 'all_filtered_out' };
+  }
 
   return { prices, usage: result.usage };
 }
