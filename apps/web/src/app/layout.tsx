@@ -1,10 +1,32 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import '@/styles/globals.css';
 
 export const metadata: Metadata = {
-  title: 'Fairtrail — The price trail airlines don\'t show you',
+  metadataBase: new URL('https://fairtrail.org'),
+  title: {
+    default: 'Fairtrail — The price trail airlines don\'t show you',
+    template: '%s | Fairtrail',
+  },
   description:
     'Track flight prices over time with shareable charts. See how fares evolve, compare airlines, and book at the right moment.',
+  openGraph: {
+    title: 'Fairtrail — The price trail airlines don\'t show you',
+    description:
+      'Track flight prices over time with shareable charts. See how fares evolve, compare airlines, and book at the right moment.',
+    siteName: 'Fairtrail',
+    type: 'website',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#080f1a' },
+    { media: '(prefers-color-scheme: light)', color: '#f5f2ec' },
+  ],
 };
 
 const themeScript = `
