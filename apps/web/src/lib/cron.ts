@@ -1,6 +1,25 @@
 import { CronJob } from 'cron';
 
 let cronJob: CronJob | null = null;
+let cronIntervalHours = 3;
+let lastScrapeAt: Date | null = null;
+
+export function getNextScrapeTime(): string | null {
+  if (!cronJob) return null;
+  try {
+    return cronJob.nextDate().toISO() ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export function getCronInfo(): { intervalHours: number; nextScrape: string | null; lastScrape: string | null } {
+  return {
+    intervalHours: cronIntervalHours,
+    nextScrape: getNextScrapeTime(),
+    lastScrape: lastScrapeAt?.toISOString() ?? null,
+  };
+}
 
 export function startCron() {
   if (process.env.CRON_ENABLED === 'false') {
@@ -8,8 +27,8 @@ export function startCron() {
     return;
   }
 
-  const intervalHours = Math.max(1, parseInt(process.env.CRON_INTERVAL_HOURS ?? '3', 10));
-  const cronExpression = `0 */${intervalHours} * * *`;
+  cronIntervalHours = Math.max(1, parseInt(process.env.CRON_INTERVAL_HOURS ?? '3', 10));
+  const cronExpression = `0 */${cronIntervalHours} * * *`;
 
   cronJob = new CronJob(cronExpression, async () => {
     console.log(`[cron] Starting scheduled scrape...`);
@@ -19,6 +38,7 @@ export function startCron() {
 
       await cleanupUnvisitedQueries();
       const results = await runScrapeAll();
+      lastScrapeAt = new Date();
 
       const successful = results.filter((r) => r.status === 'success').length;
       const failed = results.filter((r) => r.status === 'failed').length;
@@ -30,7 +50,7 @@ export function startCron() {
   });
 
   cronJob.start();
-  console.log(`[cron] Scheduled every ${intervalHours}h (${cronExpression}), next: ${cronJob.nextDate().toISO()}`);
+  console.log(`[cron] Scheduled every ${cronIntervalHours}h (${cronExpression}), next: ${cronJob.nextDate().toISO()}`);
 }
 
 export function stopCron() {

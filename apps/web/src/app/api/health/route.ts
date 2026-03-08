@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { redis } from '@/lib/redis';
+import { getCronInfo } from '@/lib/cron';
 
 export async function GET() {
   const checks: Record<string, string> = {};
@@ -26,8 +27,19 @@ export async function GET() {
     checks.database === 'connected' &&
     (checks.redis === 'connected' || checks.redis === 'disabled');
 
+  let activeQueries = 0;
+  try {
+    activeQueries = await prisma.query.count({
+      where: { active: true, OR: [{ isSeed: true }, { expiresAt: { gt: new Date() } }] },
+    });
+  } catch {
+    // non-fatal
+  }
+
+  const cron = getCronInfo();
+
   return Response.json(
-    { status: healthy ? 'ok' : 'degraded', ...checks },
+    { status: healthy ? 'ok' : 'degraded', ...checks, activeQueries, cron },
     { status: healthy ? 200 : 503 }
   );
 }

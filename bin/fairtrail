@@ -93,8 +93,64 @@ cmd_start_background() {
   echo -e "  ${DIM}Stop with: fairtrail stop${RESET}"
 }
 
+format_time() {
+  local iso="$1"
+  if [ -z "$iso" ] || [ "$iso" = "null" ]; then
+    echo "unknown"
+    return
+  fi
+  # Try to parse with date command (macOS and GNU)
+  if date -j -f "%Y-%m-%dT%H:%M:%S" "${iso%%.*}" "+%H:%M" 2>/dev/null; then
+    return
+  fi
+  date -d "$iso" "+%H:%M" 2>/dev/null || echo "$iso"
+}
+
+fetch_health() {
+  curl -sf "http://localhost:${PORT}/api/health" 2>/dev/null
+}
+
+show_tracking_info() {
+  local health
+  health=$(fetch_health)
+  if [ -z "$health" ]; then return; fi
+
+  local queries next_scrape interval
+  queries=$(echo "$health" | grep -o '"activeQueries":[0-9]*' | cut -d: -f2)
+  next_scrape=$(echo "$health" | grep -o '"nextScrape":"[^"]*"' | cut -d'"' -f4)
+  interval=$(echo "$health" | grep -o '"intervalHours":[0-9]*' | cut -d: -f2)
+
+  if [ -n "$queries" ] && [ "$queries" != "0" ]; then
+    local next_str
+    next_str=$(format_time "$next_scrape")
+    echo -e "  ${BOLD}${queries}${RESET} active queries — next scrape at ${BOLD}${next_str}${RESET} (every ${interval:-3}h)"
+  fi
+}
+
 cmd_stop() {
   echo ""
+  # Show what will be paused before asking
+  local health
+  health=$(fetch_health)
+  if [ -n "$health" ]; then
+    local queries next_scrape interval
+    queries=$(echo "$health" | grep -o '"activeQueries":[0-9]*' | cut -d: -f2)
+    next_scrape=$(echo "$health" | grep -o '"nextScrape":"[^"]*"' | cut -d'"' -f4)
+    interval=$(echo "$health" | grep -o '"intervalHours":[0-9]*' | cut -d: -f2)
+
+    if [ -n "$queries" ] && [ "$queries" != "0" ]; then
+      local next_str
+      next_str=$(format_time "$next_scrape")
+      echo -e "  ${YELLOW}${BOLD}${queries}${RESET}${YELLOW} active queries tracking prices (next scrape at ${BOLD}${next_str}${RESET}${YELLOW}, every ${interval:-3}h)${RESET}"
+    fi
+  fi
+
+  read -rp "  Stop Fairtrail? [y/N] " confirm
+  if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+    echo -e "  ${DIM}Cancelled${RESET}"
+    return
+  fi
+
   echo -e "${CYAN}${BOLD}▸${RESET} Stopping Fairtrail..."
   docker compose -f "$FAIRTRAIL_DIR/docker-compose.yml" stop 2>/dev/null
   echo -e "${GREEN}${BOLD}✓${RESET} Stopped"
@@ -107,8 +163,11 @@ cmd_logs() {
 }
 
 cmd_status() {
-  if curl -sf "http://localhost:${PORT}/api/health" >/dev/null 2>&1; then
+  local health
+  health=$(fetch_health)
+  if [ -n "$health" ]; then
     echo -e "${GREEN}${BOLD}✓${RESET} Fairtrail is running at ${BOLD}http://localhost:${PORT}${RESET}"
+    show_tracking_info
   else
     echo -e "${DIM}Fairtrail is not running. Start with: fairtrail${RESET}"
   fi
