@@ -1,14 +1,21 @@
+import { launchBrowser, createStealthContext } from './browser';
+import { getAirlineUrl } from './airline-urls';
+
 export interface FlightSearchParams {
   origin: string;
   destination: string;
   dateFrom: Date;
   dateTo: Date;
+  cabinClass?: string;
 }
+
+export type NavigationSource = 'google_flights' | 'airline_direct';
 
 export interface NavigationResult {
   html: string;
   url: string;
   resultsFound: boolean;
+  source: NavigationSource;
 }
 
 function buildGoogleFlightsUrl(params: FlightSearchParams): string {
@@ -21,27 +28,10 @@ function buildGoogleFlightsUrl(params: FlightSearchParams): string {
 export async function navigateGoogleFlights(
   params: FlightSearchParams
 ): Promise<NavigationResult> {
-  const { chromium } = await import('playwright');
-
-  const browser = await chromium.launch({
-    headless: true,
-    executablePath: process.env.CHROME_PATH || undefined,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-    ],
-  });
+  const browser = await launchBrowser();
 
   try {
-    const context = await browser.newContext({
-      userAgent:
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-      viewport: { width: 1440, height: 900 },
-      locale: 'en-US',
-    });
-
+    const context = await createStealthContext(browser);
     const page = await context.newPage();
     const url = buildGoogleFlightsUrl(params);
     await page.goto(url, { waitUntil: 'networkidle', timeout: 30_000 });
@@ -73,7 +63,64 @@ export async function navigateGoogleFlights(
     const html = await page.content();
 
     await context.close();
-    return { html, url, resultsFound };
+    return { html, url, resultsFound, source: 'google_flights' };
+  } finally {
+    await browser.close();
+  }
+}
+
+export async function navigateAirlineDirect(
+  params: FlightSearchParams,
+  airlineName: string
+): Promise<NavigationResult> {
+  const url = getAirlineUrl(airlineName, params);
+  if (!url) {
+    throw new Error(`No URL pattern for airline: ${airlineName}`);
+  }
+
+  const browser = await launchBrowser();
+
+  try {
+    const context = await createStealthContext(browser);
+    const page = await context.newPage();
+    await page.goto(url, { waitUntil: 'networkidle', timeout: 45_000 });
+
+    // Airline sites are slower — wait for dynamic content to render
+    await page.waitForTimeout(5000);
+
+    // Dismiss cookie/consent dialogs common on airline sites
+    try {
+      for (const label of ['Accept all', 'Accept', 'I agree', 'Accept cookies', 'OK', 'Got it']) {
+        const btn = page.locator(`button:has-text("${label}")`).first();
+        if (await btn.isVisible({ timeout: 1000 })) {
+          await btn.click();
+          await page.waitForTimeout(2000);
+          break;
+        }
+      }
+    } catch {
+      // No consent dialog — continue
+    }
+
+    // Heuristic: check if any price-like content loaded (currency symbols or digits)
+    let resultsFound = false;
+    try {
+      await page.waitForFunction(
+        () => {
+          const text = document.body?.innerText ?? '';
+          return /\$\s?\d|€\s?\d|£\s?\d|USD|EUR|GBP|\d+\.\d{2}/.test(text);
+        },
+        { timeout: 15_000 }
+      );
+      resultsFound = true;
+    } catch {
+      // No price content detected — page may be blocked or empty
+    }
+
+    const html = await page.content();
+
+    await context.close();
+    return { html, url, resultsFound, source: 'airline_direct' };
   } finally {
     await browser.close();
   }
