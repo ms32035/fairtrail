@@ -23,6 +23,7 @@ model Query {
   timePreference  String   @default("any")
   cabinClass      String   @default("economy")
   tripType        String   @default("round_trip") // 'one_way' | 'round_trip'
+  groupId         String?  // links sibling queries created from the same multi-route search
   deleteToken     String?
   active          Boolean  @default(true)
   isSeed          Boolean  @default(false)
@@ -39,6 +40,7 @@ model Query {
   @@index([active])
   @@index([expiresAt])
   @@index([isSeed])
+  @@index([groupId])
 }
 
 model PriceSnapshot {

@@ -1,11 +1,18 @@
 import { EXTRACTION_PROVIDERS, type ExtractionResult } from './ai-registry';
 import { prisma } from '@/lib/prisma';
 
+export interface Airport {
+  code: string; // IATA 3-letter code
+  name: string; // City/airport name
+}
+
 export interface ParsedFlightQuery {
-  origin: string;
-  originName: string;
-  destination: string;
+  origin: string;      // primary origin IATA code (first in origins array)
+  originName: string;  // primary origin city name
+  destination: string; // primary destination IATA code (first in destinations array)
   destinationName: string;
+  origins: Airport[];      // all origin airports (e.g., JFK + EWR for "New York")
+  destinations: Airport[]; // all destination airports (e.g., ORD + MDW for "Chicago")
   dateFrom: string; // ISO date
   dateTo: string; // ISO date
   flexibility: number; // days
