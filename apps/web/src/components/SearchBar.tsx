@@ -9,6 +9,7 @@ import { ClarificationCard } from './ClarificationCard';
 import { FlightPicker, type RouteFlights } from './FlightPicker';
 import { LinkBanner, type CreatedTracker } from './LinkBanner';
 import type { PriceData } from '@/lib/scraper/extract-prices';
+import { detectLocaleCurrency } from '@/lib/currency';
 
 interface ConversationMessage {
   role: 'user' | 'assistant';
@@ -100,6 +101,15 @@ export function SearchBar() {
       }
 
       const { parsed: p, confidence, ambiguities: ambs } = data.data;
+
+      // If the LLM defaulted to USD and user didn't explicitly ask for it,
+      // use the browser's locale currency instead
+      if (p && p.currency === 'USD') {
+        const localeCurrency = detectLocaleCurrency();
+        if (localeCurrency !== 'USD') {
+          p.currency = localeCurrency;
+        }
+      }
 
       if (confidence === 'high' && p) {
         setParsed(p);
