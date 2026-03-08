@@ -8,6 +8,8 @@ import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { DeleteTracker } from '@/components/DeleteTracker';
 import { ScrapeInterval } from '@/components/ScrapeInterval';
+import { ChartActions } from '@/components/ChartActions';
+import { PriceCalendar } from '@/components/PriceCalendar';
 import { Footer } from '@/components/Footer';
 import styles from './page.module.css';
 
@@ -232,12 +234,20 @@ export default async function ChartPage({ params }: Props) {
             </div>
           </>
         )}
-        <div className={styles.expiry}>
-          {expired ? (
-            <span className={styles.expiredBadge}>Expired</span>
-          ) : (
-            <span className={styles.activeBadge}>Expires in {daysLeft}d</span>
-          )}
+        <div className={styles.headerActions}>
+          <div className={styles.expiry}>
+            {expired ? (
+              <span className={styles.expiredBadge}>Expired</span>
+            ) : (
+              <span className={styles.activeBadge}>Expires in {daysLeft}d</span>
+            )}
+          </div>
+          <ChartActions
+            queryId={id}
+            origin={primary.query.origin}
+            destination={primary.query.destination}
+            snapshots={primary.snapshots}
+          />
         </div>
       </header>
 
@@ -271,6 +281,10 @@ export default async function ChartPage({ params }: Props) {
 
           <section className={styles.history}>
             <PriceHistory snapshots={qData.snapshots} />
+          </section>
+
+          <section className={styles.calendar}>
+            <PriceCalendar snapshots={qData.snapshots} currency={qData.query.currency ?? 'USD'} />
           </section>
         </div>
       ))}
