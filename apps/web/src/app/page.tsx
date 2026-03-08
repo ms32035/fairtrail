@@ -5,6 +5,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { SavedTrackers } from '@/components/SavedTrackers';
 import { SetupRedirect } from '@/components/SetupRedirect';
 import { UsageStats } from '@/components/UsageStats';
+import { PriceAlerts } from '@/components/PriceAlerts';
 import { Footer } from '@/components/Footer';
 import { getSessionToken, verifySessionToken } from '@/lib/admin-auth';
 
@@ -69,6 +70,7 @@ export default async function HomePage() {
         {isSelfHosted ? (
           <>
             <SearchBar />
+            <PriceAlerts />
             <SavedTrackers />
             <UsageStats />
           </>
