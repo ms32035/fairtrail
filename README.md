@@ -198,10 +198,21 @@ You type: "SFO to Tokyo sometime in July ± 5 days"
 
 The built-in cron runs on a configurable interval (default: every 3h). Each run captures prices across all active queries and the chart pages update automatically.
 
-## Updating
+## Managing Fairtrail
 
 ```bash
 cd ~/fairtrail   # or wherever you cloned it
+
+docker compose up -d       # start (runs in background)
+docker compose stop        # stop (keeps data)
+docker compose logs -f web # view logs
+docker compose down        # stop and remove containers (data persists in volumes)
+```
+
+### Updating
+
+```bash
+cd ~/fairtrail
 git pull
 docker compose up -d --build
 ```
