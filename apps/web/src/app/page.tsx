@@ -45,7 +45,7 @@ export default async function HomePage() {
         <ThemeToggle />
       </div>
       <div className={styles.hero}>
-        <h1 className={styles.title}>Fairtrail</h1>
+        <h1 className={styles.title}><Link href="/">Fairtrail</Link></h1>
         <p className={styles.tagline}>
           The price trail airlines don&apos;t show you
         </p>
