@@ -64,6 +64,20 @@
   margin-top: -0.5rem;
 }
 
+/* Demo GIF (fairtrail.org) */
+.demo {
+  width: 100%;
+  max-width: 860px;
+  padding: 0 1.5rem 2rem;
+}
+
+.demoImg {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
 /* Why section */
 .why {
   width: 100%;

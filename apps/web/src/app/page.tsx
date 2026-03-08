@@ -89,6 +89,19 @@ export default async function HomePage() {
         )}
       </div>
 
+      {!isSelfHosted && (
+        <div className={styles.demo}>
+          <img
+            src="/demo.gif"
+            alt="Price evolution charts — JFK to Paris, LAX to Tokyo, Chicago to Rome"
+            className={styles.demoImg}
+            width={1280}
+            height={900}
+            loading="eager"
+          />
+        </div>
+      )}
+
       <section className={styles.why}>
         <h2 className={styles.whyTitle}>Why can&apos;t you see this data anywhere else?</h2>
         <div className={styles.reasons}>
