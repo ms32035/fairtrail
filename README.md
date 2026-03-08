@@ -12,11 +12,16 @@ Track flight prices over time. Self-hosted. Open source. Bring your own LLM.
 
 <br>
 
-<img src="assets/home.png" alt="Fairtrail landing page" width="100%">
+<img src="assets/demo.gif" alt="Fairtrail — price evolution charts cycling through JFK→CDG, LAX→NRT, ORD→FCO" width="100%">
 
 <details>
-<summary>Light mode</summary>
-<img src="assets/home-light.png" alt="Fairtrail light mode" width="100%">
+<summary>Screenshots</summary>
+<br>
+<img src="assets/home.png" alt="Landing page (dark)" width="100%">
+<br><br>
+<img src="assets/home-light.png" alt="Landing page (light)" width="100%">
+<br><br>
+<img src="assets/chart-jfk-cdg.png" alt="JFK → CDG price chart" width="100%">
 </details>
 
 </div>
