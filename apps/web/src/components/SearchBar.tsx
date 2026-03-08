@@ -205,6 +205,7 @@ export function SearchBar() {
           maxStops: parsed.maxStops,
           preferredAirlines: parsed.preferredAirlines,
           timePreference: parsed.timePreference,
+          currency: parsed.currency,
           cabinClass: parsed.cabinClass,
           tripType: parsed.tripType,
           routes: routeSelections.map((rs) => ({
@@ -212,6 +213,7 @@ export function SearchBar() {
             originName: rs.route.originName,
             destination: rs.route.destination,
             destinationName: rs.route.destinationName,
+            date: rs.route.date,
             selectedFlights: rs.flights,
           })),
         }),
@@ -224,8 +226,7 @@ export function SearchBar() {
         return;
       }
 
-      // data.data.queries is an array of { id, origin, originName, destination, destinationName, deleteToken }
-      const queries: Array<{ id: string; origin: string; originName: string; destination: string; destinationName: string; deleteToken: string }> = data.data.queries;
+      const queries: Array<{ id: string; origin: string; originName: string; destination: string; destinationName: string; date?: string; deleteToken: string }> = data.data.queries;
 
       for (const q of queries) {
         addSavedTracker({
@@ -234,8 +235,8 @@ export function SearchBar() {
           destination: q.destination,
           originName: q.originName,
           destinationName: q.destinationName,
-          dateFrom: parsed.dateFrom,
-          dateTo: parsed.dateTo,
+          dateFrom: q.date || parsed.dateFrom,
+          dateTo: q.date || parsed.dateTo,
           createdAt: new Date().toISOString(),
           deleteToken: q.deleteToken,
         });
@@ -247,6 +248,7 @@ export function SearchBar() {
         originName: q.originName,
         destination: q.destination,
         destinationName: q.destinationName,
+        date: q.date,
       })));
     } catch {
       setError('Network error — please try again');

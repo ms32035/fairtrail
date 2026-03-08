@@ -12,6 +12,7 @@ export interface RouteFlights {
   destination: string;
   destinationName: string;
   flights: PriceData[];
+  date?: string; // ISO date — set when grouped by travel date
   error?: string;
 }
 
@@ -21,8 +22,15 @@ function formatStops(stops: number): string {
   return `${stops} stops`;
 }
 
+function formatRouteDate(iso: string): string {
+  return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
 function rKey(route: RouteFlights): string {
-  return `${route.origin}-${route.destination}`;
+  return `${route.origin}-${route.destination}${route.date ? '-' + route.date : ''}`;
 }
 
 export function FlightPicker({
@@ -103,10 +111,13 @@ export function FlightPicker({
                 {!isSingleRoute && (
                   <span className={styles.routeLabel}>
                     {route.origin} → {route.destination}
+                    {route.date && ` · ${formatRouteDate(route.date)}`}
                   </span>
                 )}
                 <h3 className={styles.title}>
-                  {isSingleRoute ? 'Available flights' : route.destinationName}
+                  {isSingleRoute
+                    ? route.date ? `Flights on ${formatRouteDate(route.date)}` : 'Available flights'
+                    : route.destinationName}
                 </h3>
                 <span className={styles.counter}>
                   {selected.size} of {Math.min(route.flights.length, MAX_SELECTIONS_PER_ROUTE)} selected

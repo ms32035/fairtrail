@@ -19,6 +19,7 @@ export interface ParsedQuery {
   timePreference: string;
   cabinClass: string;
   tripType: string;
+  currency: string;
 }
 
 function formatDate(iso: string): string {

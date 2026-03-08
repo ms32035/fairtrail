@@ -23,6 +23,7 @@ export interface RouteResult {
   destination: string;
   destinationName: string;
   flights: PriceData[];
+  date?: string; // ISO date — set when flights are grouped by travel date
   error?: string;
 }
 
@@ -247,13 +248,29 @@ export async function POST(request: NextRequest) {
           })
         );
 
-        routes.push({
-          origin: combo.origin.code,
-          originName: combo.origin.name,
-          destination: combo.destination.code,
-          destinationName: combo.destination.name,
-          flights,
-        });
+        // Group flights by travelDate when the search spans multiple days
+        const uniqueDates = [...new Set(flights.map((f) => f.travelDate))].sort();
+        if (uniqueDates.length > 1) {
+          for (const date of uniqueDates) {
+            routes.push({
+              origin: combo.origin.code,
+              originName: combo.origin.name,
+              destination: combo.destination.code,
+              destinationName: combo.destination.name,
+              flights: flights.filter((f) => f.travelDate === date),
+              date,
+            });
+          }
+        } else {
+          routes.push({
+            origin: combo.origin.code,
+            originName: combo.origin.name,
+            destination: combo.destination.code,
+            destinationName: combo.destination.name,
+            flights,
+            date: uniqueDates[0],
+          });
+        }
       } catch (err) {
         // Partial failure — include route with error, continue with others
         routes.push({
