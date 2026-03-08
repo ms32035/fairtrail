@@ -19,8 +19,6 @@ Track flight prices over time. Self-hosted. Open source. Bring your own LLM.
 <br>
 <img src="assets/home.png" alt="Landing page (dark)" width="100%">
 <br><br>
-<img src="assets/home-light.png" alt="Landing page (light)" width="100%">
-<br><br>
 <img src="assets/chart-jfk-cdg.png" alt="JFK → CDG price chart" width="100%">
 </details>
 
