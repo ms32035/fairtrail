@@ -86,13 +86,16 @@ model FetchRun {
 }
 
 model ExtractionConfig {
-  id                String   @id @default("singleton")
-  provider          String   @default("anthropic")
-  model             String   @default("claude-haiku-4-5-20251001")
-  enabled           Boolean  @default(true)
-  scrapeInterval    Int      @default(6) // hours — global default
-  adminPasswordHash String?
-  updatedAt         DateTime @updatedAt
+  id                   String    @id @default("singleton")
+  provider             String    @default("anthropic")
+  model                String    @default("claude-haiku-4-5-20251001")
+  enabled              Boolean   @default(true)
+  scrapeInterval       Int       @default(6) // hours — global default
+  adminPasswordHash    String?
+  communitySharing     Boolean   @default(false)
+  communityApiKey      String?
+  lastCommunitySyncAt  DateTime?
+  updatedAt            DateTime  @updatedAt
 }
 
 model InviteCode {

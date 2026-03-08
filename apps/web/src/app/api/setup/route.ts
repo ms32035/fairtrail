@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import { createHash } from 'crypto';
+import { registerForCommunity } from '@/lib/community-sync';
 
 export async function POST(request: Request) {
   // Only allow setup if no config exists yet
@@ -13,10 +14,11 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { adminPassword, provider, model } = body as {
+  const { adminPassword, provider, model, communitySharing } = body as {
     adminPassword: string;
     provider: string;
     model: string;
+    communitySharing?: boolean;
   };
 
   if (!adminPassword || adminPassword.length < 8) {
@@ -29,6 +31,17 @@ export async function POST(request: Request) {
 
   const passwordHash = createHash('sha256').update(adminPassword).digest('hex');
 
+  // Register for community API key if opted in
+  let communityApiKey: string | null = null;
+  if (communitySharing) {
+    try {
+      communityApiKey = await registerForCommunity();
+    } catch (err) {
+      console.error('[setup] Community registration failed:', err instanceof Error ? err.message : err);
+      // Non-fatal — setup continues without community sharing
+    }
+  }
+
   await prisma.extractionConfig.upsert({
     where: { id: 'singleton' },
     create: {
@@ -36,11 +49,15 @@ export async function POST(request: Request) {
       provider,
       model,
       adminPasswordHash: passwordHash,
+      communitySharing: communitySharing && communityApiKey !== null,
+      communityApiKey,
     },
     update: {
       provider,
       model,
       adminPasswordHash: passwordHash,
+      communitySharing: communitySharing && communityApiKey !== null,
+      communityApiKey,
     },
   });
 

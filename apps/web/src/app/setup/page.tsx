@@ -18,6 +18,7 @@ export default function SetupPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [provider, setProvider] = useState('');
   const [model, setModel] = useState('');
+  const [communitySharing, setCommunitySharing] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -57,16 +58,21 @@ export default function SetupPage() {
       return;
     }
 
-    if (!provider || !model) {
-      setError('Select a provider and model');
+    if (step === 1) {
+      if (!provider || !model) {
+        setError('Select a provider and model');
+        return;
+      }
+      setStep(2);
       return;
     }
 
+    // Step 2: complete setup
     setLoading(true);
     const res = await fetch('/api/setup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ adminPassword: password, provider, model }),
+      body: JSON.stringify({ adminPassword: password, provider, model, communitySharing }),
     });
 
     if (res.ok) {
@@ -89,21 +95,24 @@ export default function SetupPage() {
   }
 
   const providerEntries = Object.entries(EXTRACTION_PROVIDERS);
+  const subtitles = [
+    'Set your admin password',
+    'Choose your LLM provider',
+    'Join the community',
+  ];
 
   return (
     <main className={styles.root}>
       <div className={styles.card}>
         <h1 className={styles.title}>Fairtrail Setup</h1>
-        <p className={styles.subtitle}>
-          {step === 0
-            ? 'Set your admin password'
-            : 'Choose your LLM provider'}
-        </p>
+        <p className={styles.subtitle}>{subtitles[step]}</p>
 
         <div className={styles.steps}>
           <span className={`${styles.step} ${step >= 0 ? styles.active : ''}`}>1. Password</span>
           <span className={styles.stepDivider}>/</span>
           <span className={`${styles.step} ${step >= 1 ? styles.active : ''}`}>2. Provider</span>
+          <span className={styles.stepDivider}>/</span>
+          <span className={`${styles.step} ${step >= 2 ? styles.active : ''}`}>3. Community</span>
         </div>
 
         {step === 0 && (
@@ -166,6 +175,29 @@ export default function SetupPage() {
           </div>
         )}
 
+        {step === 2 && (
+          <div className={styles.fields}>
+            <div className={styles.communityCard}>
+              <h3 className={styles.communityTitle}>
+                Help build the world&apos;s first open flight price database
+              </h3>
+              <p className={styles.communityText}>
+                Share anonymized price data (route, price, airline, date) with the
+                Fairtrail community. No personal info is ever sent.
+              </p>
+              <button
+                className={`${styles.communityToggle} ${communitySharing ? styles.communityActive : ''}`}
+                onClick={() => setCommunitySharing(!communitySharing)}
+              >
+                {communitySharing ? 'Sharing enabled' : 'Not sharing'}
+              </button>
+            </div>
+            <p className={styles.communityHint}>
+              You can change this anytime in the admin panel.
+            </p>
+          </div>
+        )}
+
         {error && <p className={styles.error}>{error}</p>}
 
         <div className={styles.actions}>
@@ -182,7 +214,7 @@ export default function SetupPage() {
             onClick={handleSubmit}
             disabled={loading}
           >
-            {loading ? 'Setting up...' : step === 0 ? 'Next' : 'Complete Setup'}
+            {loading ? 'Setting up...' : step < 2 ? 'Next' : 'Complete Setup'}
           </button>
         </div>
       </div>
