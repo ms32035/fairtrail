@@ -10,7 +10,7 @@ export async function GET() {
 
   try {
     const res = await fetch(
-      'https://api.github.com/repos/afromero/fairtrail/releases/latest',
+      'https://api.github.com/repos/affromero/fairtrail/releases/latest',
       {
         headers: { Accept: 'application/vnd.github.v3+json' },
         next: { revalidate: 3600 },
