@@ -18,10 +18,10 @@ YELLOW='\033[0;33m'
 RED='\033[0;31m'
 RESET='\033[0m'
 
-info()  { echo -e "${CYAN}${BOLD}▸${RESET} $1"; }
-ok()    { echo -e "${GREEN}${BOLD}✓${RESET} $1"; }
-warn()  { echo -e "${YELLOW}${BOLD}!${RESET} $1"; }
-fail()  { echo -e "${RED}${BOLD}✗${RESET} $1"; exit 1; }
+info()  { printf "${CYAN}${BOLD}▸${RESET} %b\n" "$1"; }
+ok()    { printf "${GREEN}${BOLD}✓${RESET} %b\n" "$1"; }
+warn()  { printf "${YELLOW}${BOLD}!${RESET} %b\n" "$1"; }
+fail()  { printf "${RED}${BOLD}✗${RESET} %b\n" "$1"; exit 1; }
 
 FAIRTRAIL_DIR="$HOME/.fairtrail"
 INSTALL_BIN="$HOME/.local/bin"
@@ -29,26 +29,26 @@ PORT="${PORT:-3003}"
 BASE_URL="${FAIRTRAIL_URL:-https://fairtrail.org}"
 
 echo ""
-echo -e "${BOLD}  Fairtrail — Flight Price Tracker${RESET}"
-echo -e "  ${DIM}The price trail airlines don't show you${RESET}"
+printf "${BOLD}  Fairtrail — Flight Price Tracker${RESET}\n"
+printf "  ${DIM}The price trail airlines don't show you${RESET}\n"
 echo ""
 
 # ---------------------------------------------------------------------------
 # 0. Transparency summary — show what this installer does before proceeding
 # ---------------------------------------------------------------------------
-echo -e "  ${BOLD}This installer will:${RESET}"
+printf "  ${BOLD}This installer will:${RESET}\n"
 echo ""
-echo -e "  ${DIM}1.${RESET} Install 3 Docker containers to ${BOLD}~/.fairtrail/${RESET}"
-echo -e "     ${DIM}• PostgreSQL 16 (your local database — nothing leaves your machine)${RESET}"
-echo -e "     ${DIM}• Redis 7 (local cache)${RESET}"
-echo -e "     ${DIM}• Fairtrail web app (from ghcr.io/affromero/fairtrail)${RESET}"
+printf "  ${DIM}1.${RESET} Install 3 Docker containers to ${BOLD}~/.fairtrail/${RESET}\n"
+printf "     ${DIM}• PostgreSQL 16 (your local database — nothing leaves your machine)${RESET}\n"
+printf "     ${DIM}• Redis 7 (local cache)${RESET}\n"
+printf "     ${DIM}• Fairtrail web app (from ghcr.io/affromero/fairtrail)${RESET}\n"
 echo ""
-echo -e "  ${DIM}2.${RESET} Download the ${BOLD}fairtrail${RESET} CLI to ${BOLD}~/.local/bin/${RESET}"
+printf "  ${DIM}2.${RESET} Download the ${BOLD}fairtrail${RESET} CLI to ${BOLD}~/.local/bin/${RESET}\n"
 echo ""
-echo -e "  ${DIM}3.${RESET} Generate a local ${BOLD}.env${RESET} config file in ~/.fairtrail/"
+printf "  ${DIM}3.${RESET} Generate a local ${BOLD}.env${RESET} config file in ~/.fairtrail/\n"
 echo ""
-echo -e "  ${DIM}No data leaves your machine. No account required.${RESET}"
-echo -e "  ${DIM}Open source (MIT) — ${BOLD}https://github.com/AFFRomero/fairtrail${RESET}"
+printf "  ${DIM}No data leaves your machine. No account required.${RESET}\n"
+printf "  ${DIM}Open source (MIT) — ${BOLD}https://github.com/AFFRomero/fairtrail${RESET}\n"
 echo ""
 
 # Allow non-interactive mode (e.g., CI) by setting FAIRTRAIL_YES=1
@@ -56,8 +56,8 @@ if [ "${FAIRTRAIL_YES:-}" != "1" ]; then
   read -rp "  Continue? [Y/n] " CONSENT < /dev/tty
   if [[ "$CONSENT" =~ ^[Nn]$ ]]; then
     echo ""
-    echo -e "  ${DIM}No changes were made. Inspect the script:${RESET}"
-    echo -e "  ${BOLD}curl -fsSL https://fairtrail.org/install.sh | less${RESET}"
+    printf "  ${DIM}No changes were made. Inspect the script:${RESET}\n"
+    printf "  ${BOLD}curl -fsSL https://fairtrail.org/install.sh | less${RESET}\n"
     echo ""
     exit 0
   fi
@@ -84,7 +84,7 @@ install_docker_linux() {
   if ! command -v sudo &>/dev/null; then
     fail "sudo is required to install Docker. Install sudo first, then re-run."
   fi
-  echo -e "  ${DIM}This requires sudo — you may be prompted for your password.${RESET}"
+  printf "  ${DIM}This requires sudo — you may be prompted for your password.${RESET}\n"
   curl -fsSL https://get.docker.com | sudo sh
   sudo usermod -aG docker "$USER"
   warn "You were added to the docker group. Log out and back in, then re-run this installer."
@@ -119,7 +119,7 @@ if ! docker info &>/dev/null 2>&1; then
       ;;
     linux|wsl)
       warn "Docker daemon is not running."
-      echo -e "  ${DIM}Trying to start it...${RESET}"
+      printf "  ${DIM}Trying to start it...${RESET}\n"
       if command -v sudo &>/dev/null; then
         sudo systemctl start docker 2>/dev/null || sudo service docker start 2>/dev/null || true
         sleep 2
@@ -166,8 +166,8 @@ ok "Port ${PORT} is available"
 # ---------------------------------------------------------------------------
 if [ -d "$HOME/fairtrail" ] && [ ! -d "$FAIRTRAIL_DIR" ]; then
   warn "Found old install at ~/fairtrail"
-  echo -e "  ${DIM}The new install location is ~/.fairtrail${RESET}"
-  echo -e "  ${DIM}Your Docker volumes (tracked queries, price data) are preserved.${RESET}"
+  printf "  ${DIM}The new install location is ~/.fairtrail${RESET}\n"
+  printf "  ${DIM}Your Docker volumes (tracked queries, price data) are preserved.${RESET}\n"
   echo ""
 fi
 
@@ -274,8 +274,8 @@ fi
 if ! echo "$PATH" | tr ':' '\n' | grep -qx "$INSTALL_BIN"; then
   warn "$INSTALL_BIN is not in your PATH"
   echo ""
-  echo -e "  Add this to your shell profile (~/.bashrc, ~/.zshrc, etc.):"
-  echo -e "  ${BOLD}export PATH=\"\$HOME/.local/bin:\$PATH\"${RESET}"
+  printf "  Add this to your shell profile (~/.bashrc, ~/.zshrc, etc.):\n"
+  printf "  ${BOLD}export PATH=\"\$HOME/.local/bin:\$PATH\"${RESET}\n"
   echo ""
 fi
 
@@ -300,10 +300,10 @@ fi
 if [ "$CLAUDE_CODE_DETECTED" = false ] && [ "$CODEX_DETECTED" = false ]; then
   warn "No Claude Code or Codex CLI found"
   echo ""
-  echo -e "  Paste an API key from any provider:"
-  echo -e "  ${DIM}1. Anthropic  — https://console.anthropic.com/${RESET}"
-  echo -e "  ${DIM}2. OpenAI     — https://platform.openai.com/api-keys${RESET}"
-  echo -e "  ${DIM}3. Google AI  — https://aistudio.google.com/apikey${RESET}"
+  printf "  Paste an API key from any provider:\n"
+  printf "  ${DIM}1. Anthropic  — https://console.anthropic.com/${RESET}\n"
+  printf "  ${DIM}2. OpenAI     — https://platform.openai.com/api-keys${RESET}\n"
+  printf "  ${DIM}3. Google AI  — https://aistudio.google.com/apikey${RESET}\n"
   echo ""
   read -rsp "  API key: " API_KEY_VAL < /dev/tty
   echo ""
@@ -383,17 +383,17 @@ if [ "$CLAUDE_CODE_DETECTED" = true ] || [ "$CODEX_DETECTED" = true ]; then
   echo ""
   info "Mounting CLI credentials (read-only)"
   echo ""
-  echo -e "  ${DIM}To use your existing CLI subscription instead of a separate API key,${RESET}"
-  echo -e "  ${DIM}Fairtrail needs read-only access to your CLI auth tokens:${RESET}"
+  printf "  ${DIM}To use your existing CLI subscription instead of a separate API key,${RESET}\n"
+  printf "  ${DIM}Fairtrail needs read-only access to your CLI auth tokens:${RESET}\n"
   echo ""
   if [ "$CLAUDE_CODE_DETECTED" = true ]; then
-    echo -e "    ${DIM}~/.claude.json + ~/.claude  →  mounted as read-only (:ro)${RESET}"
+    printf "    ${DIM}~/.claude.json + ~/.claude  →  mounted as read-only (:ro)${RESET}\n"
   fi
   if [ "$CODEX_DETECTED" = true ]; then
-    echo -e "    ${DIM}~/.codex   →  mounted as read-only (:ro)${RESET}"
+    printf "    ${DIM}~/.codex   →  mounted as read-only (:ro)${RESET}\n"
   fi
   echo ""
-  echo -e "  ${DIM}The container cannot modify these files. Your tokens are never copied or sent anywhere.${RESET}"
+  printf "  ${DIM}The container cannot modify these files. Your tokens are never copied or sent anywhere.${RESET}\n"
   echo ""
 
   if [ "${FAIRTRAIL_YES:-}" != "1" ]; then
@@ -444,11 +444,11 @@ echo ""
 cd "$FAIRTRAIL_DIR"
 
 docker compose pull 2>&1 | while IFS= read -r line; do
-  echo -e "  ${DIM}${line}${RESET}"
+  printf "  ${DIM}%s${RESET}\n" "$line"
 done
 
 docker compose up -d 2>&1 | while IFS= read -r line; do
-  echo -e "  ${DIM}${line}${RESET}"
+  printf "  ${DIM}%s${RESET}\n" "$line"
 done
 
 echo ""
@@ -476,24 +476,24 @@ fi
 # 10. Print summary
 # ---------------------------------------------------------------------------
 echo ""
-echo -e "${BOLD}  ┌──────────────────────────────────────────────────┐${RESET}"
-echo -e "${BOLD}  │                                                  │${RESET}"
-echo -e "${BOLD}  │${RESET}   ${CYAN}Fairtrail is ready${RESET}                            ${BOLD}│${RESET}"
-echo -e "${BOLD}  │${RESET}                                                  ${BOLD}│${RESET}"
-echo -e "${BOLD}  │${RESET}   Open:  ${BOLD}http://localhost:${PORT}${RESET}                  ${BOLD}│${RESET}"
-echo -e "${BOLD}  │${RESET}                                                  ${BOLD}│${RESET}"
+printf "${BOLD}  ┌──────────────────────────────────────────────────┐${RESET}\n"
+printf "${BOLD}  │                                                  │${RESET}\n"
+printf "${BOLD}  │${RESET}   ${CYAN}Fairtrail is ready${RESET}                            ${BOLD}│${RESET}\n"
+printf "${BOLD}  │${RESET}                                                  ${BOLD}│${RESET}\n"
+printf "${BOLD}  │${RESET}   Open:  ${BOLD}http://localhost:${PORT}${RESET}                  ${BOLD}│${RESET}\n"
+printf "${BOLD}  │${RESET}                                                  ${BOLD}│${RESET}\n"
 
 if [ "$CLAUDE_CODE_DETECTED" = true ] || [ "$CODEX_DETECTED" = true ]; then
-  echo -e "${BOLD}  │${RESET}   LLM:   ${GREEN}Using your existing CLI subscription${RESET}  ${BOLD}│${RESET}"
+  printf "${BOLD}  │${RESET}   LLM:   ${GREEN}Using your existing CLI subscription${RESET}  ${BOLD}│${RESET}\n"
 else
-  echo -e "${BOLD}  │${RESET}   LLM:   API key configured                     ${BOLD}│${RESET}"
+  printf "${BOLD}  │${RESET}   LLM:   API key configured                     ${BOLD}│${RESET}\n"
 fi
 
-echo -e "${BOLD}  │${RESET}                                                  ${BOLD}│${RESET}"
-echo -e "${BOLD}  └──────────────────────────────────────────────────┘${RESET}"
+printf "${BOLD}  │${RESET}                                                  ${BOLD}│${RESET}\n"
+printf "${BOLD}  └──────────────────────────────────────────────────┘${RESET}\n"
 echo ""
-echo -e "  Next time, just run: ${BOLD}fairtrail${RESET}"
-echo -e "  ${DIM}Ctrl+C to stop  |  fairtrail stop  |  fairtrail help${RESET}"
+printf "  Next time, just run: ${BOLD}fairtrail${RESET}\n"
+printf "  ${DIM}Ctrl+C to stop  |  fairtrail stop  |  fairtrail help${RESET}\n"
 echo ""
 
 # Open browser automatically
