@@ -167,7 +167,7 @@ export const EXTRACTION_PROVIDERS: Record<string, ProviderConfig> = {
         });
         proc.on('error', (err: NodeJS.ErrnoException) => {
           if (err.code === 'ENOENT') {
-            reject(new Error('claude CLI not found. Restart the container to trigger install, or disable CLAUDE_CODE_ENABLED.'));
+            reject(new Error('claude CLI not found. Restart the container to trigger install.'));
           } else {
             reject(err);
           }
@@ -213,7 +213,7 @@ export const EXTRACTION_PROVIDERS: Record<string, ProviderConfig> = {
         });
         proc.on('error', (err: NodeJS.ErrnoException) => {
           if (err.code === 'ENOENT') {
-            reject(new Error('codex CLI not found. Restart the container to trigger install, or disable CODEX_ENABLED.'));
+            reject(new Error('codex CLI not found. Restart the container to trigger install.'));
           } else {
             reject(err);
           }

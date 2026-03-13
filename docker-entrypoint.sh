@@ -59,25 +59,17 @@ echo "[setup] Applying database schema..."
 npx prisma@6 db push --schema=apps/web/prisma/schema.prisma --skip-generate --accept-data-loss 2>&1 | tail -1
 echo "[setup] Schema ready"
 
-# --- Install CLI providers if enabled ---
-if [ "${CLAUDE_CODE_ENABLED:-}" = "true" ] && ! command -v claude >/dev/null 2>&1; then
+# --- Install CLI providers (cached in cli-cache volume) ---
+if ! command -v claude >/dev/null 2>&1; then
   echo "[setup] Installing Claude Code CLI..."
   npm install -g @anthropic-ai/claude-code --prefer-offline --no-audit --no-fund 2>&1 | tail -1
-  if command -v claude >/dev/null 2>&1; then
-    echo "[setup] Claude Code CLI ready"
-  else
-    echo "[setup] WARNING: Claude Code CLI install failed — provider unavailable"
-  fi
+  command -v claude >/dev/null 2>&1 && echo "[setup] Claude Code CLI ready" || echo "[setup] WARNING: Claude Code CLI install failed"
 fi
 
-if [ "${CODEX_ENABLED:-}" = "true" ] && ! command -v codex >/dev/null 2>&1; then
+if ! command -v codex >/dev/null 2>&1; then
   echo "[setup] Installing Codex CLI..."
   npm install -g @openai/codex --prefer-offline --no-audit --no-fund 2>&1 | tail -1
-  if command -v codex >/dev/null 2>&1; then
-    echo "[setup] Codex CLI ready"
-  else
-    echo "[setup] WARNING: Codex CLI install failed — provider unavailable"
-  fi
+  command -v codex >/dev/null 2>&1 && echo "[setup] Codex CLI ready" || echo "[setup] WARNING: Codex CLI install failed"
 fi
 
 # --- Start the app ---

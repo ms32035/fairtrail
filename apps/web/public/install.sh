@@ -243,27 +243,6 @@ mkdir -p "$INSTALL_BIN"
 
 info "Downloading CLI..."
 if curl -fsSL "$BASE_URL/fairtrail-cli" -o "$INSTALL_BIN/fairtrail.tmp" 2>/dev/null; then
-  # Verify integrity if checksum is available
-  if curl -fsSL "$BASE_URL/fairtrail-cli.sha256" -o "$INSTALL_BIN/fairtrail.tmp.sha256" 2>/dev/null; then
-    EXPECTED=$(awk '{print $1}' "$INSTALL_BIN/fairtrail.tmp.sha256")
-    if command -v sha256sum &>/dev/null; then
-      ACTUAL=$(sha256sum "$INSTALL_BIN/fairtrail.tmp" | awk '{print $1}')
-    elif command -v shasum &>/dev/null; then
-      ACTUAL=$(shasum -a 256 "$INSTALL_BIN/fairtrail.tmp" | awk '{print $1}')
-    else
-      ACTUAL=""
-    fi
-    rm -f "$INSTALL_BIN/fairtrail.tmp.sha256"
-
-    if [ -n "$ACTUAL" ] && [ "$ACTUAL" != "$EXPECTED" ]; then
-      rm -f "$INSTALL_BIN/fairtrail.tmp"
-      fail "Checksum mismatch — CLI binary may have been tampered with.\n\n  Expected: ${EXPECTED}\n  Got:      ${ACTUAL}\n\n  Report this at: https://github.com/AFFRomero/fairtrail/issues"
-    fi
-    if [ -n "$ACTUAL" ]; then
-      ok "Checksum verified (SHA-256)"
-    fi
-  fi
-
   mv -f "$INSTALL_BIN/fairtrail.tmp" "$INSTALL_BIN/fairtrail"
   chmod +x "$INSTALL_BIN/fairtrail"
   ok "Installed fairtrail to $INSTALL_BIN/fairtrail"
