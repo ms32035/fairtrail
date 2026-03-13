@@ -74,8 +74,15 @@ CRITICAL — "parsed" must ALWAYS be filled:
 - Only ask about fields that are actually unclear. NEVER ask "Where are you flying from?" if the user already said it
 - When multiple dates are mentioned (e.g. "Friday or Saturday"), use your best guess for dateFrom/dateTo and ask ONLY about the date — do not re-ask origin/destination
 
-Multi-airport rules:
+Multi-destination rules:
 - "origins" and "destinations" are arrays of { "code": "IATA", "name": "City/Airport Name" }
+- When the user names MULTIPLE DIFFERENT cities as destinations (e.g. "to Bogota and Medellin", "NYC or LA", "Bogota, Medellin, and Cartagena"), include ALL cities in the destinations array:
+  - "Frankfurt to Bogota and Medellin" → destinations: [{ "code": "BOG", "name": "Bogota" }, { "code": "MDE", "name": "Medellin" }]
+  - "NYC to Lima or Cartagena" → destinations: [{ "code": "LIM", "name": "Lima" }, { "code": "CTG", "name": "Cartagena" }]
+  - Same applies to origins: "from Berlin or Munich to Rome" → origins: [{ "code": "BER", "name": "Berlin" }, { "code": "MUC", "name": "Munich" }]
+- This generates separate searches for each origin × destination combo
+
+Multi-airport rules (same city, different airports):
 - For cities with ONE major airport (e.g. Dusseldorf, Paris), return a single-element array: [{ "code": "DUS", "name": "Dusseldorf" }]
 - For cities with MULTIPLE major airports, list ALL relevant airports:
   - "New York" → [{ "code": "JFK", "name": "New York JFK" }, { "code": "EWR", "name": "Newark" }, { "code": "LGA", "name": "LaGuardia" }]

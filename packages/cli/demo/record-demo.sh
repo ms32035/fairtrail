@@ -10,8 +10,8 @@ cd "$(git rev-parse --show-toplevel)"
 SESSION="ft-rec"
 DEMO_DIR="$(pwd)/packages/cli/demo"
 
-Q1="Frankfurt to Bogota and Medellin, Dec 5 to Dec 15, round trip, max 1 stop"
-Q2="Frankfurt to Cartagena and Lima, Dec 5 to Dec 15, round trip, max 2 stops"
+Q1="Round trip Frankfurt to Bogota and Medellin, Dec 5 to Dec 15, max 1 stop"
+Q2="Round trip Frankfurt to Cartagena and Lima, Dec 5 to Dec 15, max 2 stops"
 
 type_slow() {
   local pane=$1 text=$2
@@ -28,7 +28,6 @@ kill_ink() {
 
 start_recording() {
   local out=$1
-  # Bring Ghostty to front and get its window ID
   osascript -e 'tell application "Ghostty" to activate' 2>/dev/null || true
   sleep 1
   WID=$(/tmp/get_window_id ghostty 2>/dev/null)
@@ -63,10 +62,21 @@ tmux send-keys -t "$P1" "export PATH=$DEMO_DIR:\$PATH && cd $(pwd) && clear" Ent
 tmux send-keys -t "$P2" "export PATH=$DEMO_DIR:\$PATH && cd $(pwd) && clear" Enter
 sleep 1
 
-# Open Ghostty at a fixed size (no fullscreen — prevents recording from losing the window)
-ghostty --window-width=240 --window-height=60 -e tmux attach-session -t "$SESSION" &
+# Open Ghostty and ensure NOT fullscreen
+ghostty -e tmux attach-session -t "$SESSION" &
 disown
 sleep 3
+osascript -e '
+tell application "System Events"
+  tell process "Ghostty"
+    set frontmost to true
+    try
+      click menu item "Exit Full Screen" of menu "Window" of menu bar 1
+    end try
+  end tell
+end tell
+' 2>/dev/null || true
+sleep 2
 tmux send-keys -t "$P1" "clear" Enter
 tmux send-keys -t "$P2" "clear" Enter
 sleep 1
@@ -174,9 +184,9 @@ sleep 0.5
 
 start_recording "$DEMO_DIR/fairtrail-view.mov"
 
-# Single chart view first
-V1="fairtrail --headless --view $L_ID --backend claude-code"
-V2="fairtrail --headless --view $R_ID --backend codex"
+# Single chart view (no --backend needed, data is in DB)
+V1="fairtrail --headless --view $L_ID"
+V2="fairtrail --headless --view $R_ID"
 type_slow "$P1" "$V1"
 sleep 0.2
 type_slow "$P2" "$V2"
@@ -186,7 +196,7 @@ tmux send-keys -t "$P2" Enter
 echo "[view] Charts loading..."
 sleep 15
 
-# Now --tmux: split each pane in-place
+# --tmux (no --backend needed)
 kill_ink "$P1"
 kill_ink "$P2"
 sleep 0.5
@@ -194,8 +204,8 @@ tmux send-keys -t "$P1" "clear" Enter
 tmux send-keys -t "$P2" "clear" Enter
 sleep 0.5
 
-T1="fairtrail --headless --view $L_ID --tmux --backend claude-code"
-T2="fairtrail --headless --view $R_ID --tmux --backend codex"
+T1="fairtrail --headless --view $L_ID --tmux"
+T2="fairtrail --headless --view $R_ID --tmux"
 type_slow "$P1" "$T1"
 sleep 0.2
 type_slow "$P2" "$T2"
@@ -203,7 +213,7 @@ sleep 0.5
 tmux send-keys -t "$P1" Enter
 sleep 2
 tmux send-keys -t "$P2" Enter
-echo "[view] Tmux splitting into 2x2..."
+echo "[view] Tmux panes..."
 sleep 15
 
 stop_recording
