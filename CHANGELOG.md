@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.3] - 2026-03-13
+
+### Fixed
+- Codex CLI `--print` error — codex does not support `--print` (Claude Code flag); now uses `codex exec` for non-interactive extraction ([#1](https://github.com/affromero/fairtrail/issues/1) — thanks @bobvmierlo)
+- CLI checksum verification removed — was blocking installs when the CLI script changed between releases
+- Both Claude Code and Codex CLIs now install unconditionally in the container (no env var gating needed)
+- Telegram deploy notifications no longer fire on cancelled CI runs
+
+### Changed
+- README updated: full CLI help output, explains why `~/.claude` and `~/.codex` are mounted read-only, CLI providers show as auto-detected
+
 ## [0.2.2] - 2026-03-13
 
 ### Fixed
