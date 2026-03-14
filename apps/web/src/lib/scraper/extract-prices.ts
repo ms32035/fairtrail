@@ -133,8 +133,8 @@ export async function extractPrices(
   }
 
   const isCliProvider = provider in CLI_PROVIDERS;
-  const apiKey = process.env[providerConfig.envKey] ?? (isCliProvider ? '1' : '');
-  if (!apiKey) {
+  const apiKey = isCliProvider ? '' : (providerConfig.envKey ? process.env[providerConfig.envKey] : '') ?? '';
+  if (!apiKey && !isCliProvider) {
     throw new Error(`Missing API key: ${providerConfig.envKey}`);
   }
 

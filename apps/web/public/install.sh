@@ -361,14 +361,6 @@ else
     echo "# Cron auth"
     echo "CRON_SECRET=${CRON_SECRET}"
     echo ""
-    if [ "$CLAUDE_CODE_DETECTED" = true ]; then
-      echo "# Using Claude Code CLI (your existing subscription)"
-      echo "CLAUDE_CODE_ENABLED=true"
-    fi
-    if [ "$CODEX_DETECTED" = true ]; then
-      echo "# Using Codex CLI (your existing subscription)"
-      echo "CODEX_ENABLED=true"
-    fi
     if [ -n "$API_KEY_VAR" ]; then
       echo "${API_KEY_VAR}=${API_KEY_VAL}"
     fi

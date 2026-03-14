@@ -38,7 +38,7 @@ describe('ai-registry', () => {
 
     beforeEach(() => {
       // Save and clear LLM env vars (setup.ts sets dummy keys globally)
-      for (const key of ['ANTHROPIC_API_KEY', 'OPENAI_API_KEY', 'GOOGLE_AI_API_KEY', 'CLAUDE_CODE_ENABLED', 'CODEX_ENABLED']) {
+      for (const key of ['ANTHROPIC_API_KEY', 'OPENAI_API_KEY', 'GOOGLE_AI_API_KEY']) {
         savedEnv[key] = process.env[key];
         delete process.env[key];
       }
@@ -63,8 +63,7 @@ describe('ai-registry', () => {
       expect(providers).not.toContain('google');
     });
 
-    it('detects CLI providers when enabled and binary exists', async () => {
-      process.env.CLAUDE_CODE_ENABLED = 'true';
+    it('auto-detects CLI providers when binary exists', async () => {
       mockExecSync.mockReturnValue(Buffer.from('/usr/local/bin/claude'));
 
       const providers = await detectAvailableProviders();
@@ -76,17 +75,10 @@ describe('ai-registry', () => {
     });
 
     it('skips CLI providers when binary is not found', async () => {
-      process.env.CODEX_ENABLED = 'true';
       mockExecSync.mockImplementation(() => {
         throw new Error('not found');
       });
 
-      const providers = await detectAvailableProviders();
-
-      expect(providers).not.toContain('codex');
-    });
-
-    it('skips CLI providers when not enabled even if binary exists', async () => {
       const providers = await detectAvailableProviders();
 
       expect(providers).not.toContain('codex');

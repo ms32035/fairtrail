@@ -19,7 +19,7 @@ interface ModelInfo {
 
 interface ProviderConfig {
   displayName: string;
-  envKey: string;
+  envKey?: string;
   models: ModelInfo[];
   allowCustomModel?: boolean;
   extract: (
@@ -149,7 +149,7 @@ export const EXTRACTION_PROVIDERS: Record<string, ProviderConfig> = {
   },
   'claude-code': {
     displayName: 'Claude Code (Max)',
-    envKey: 'CLAUDE_CODE_ENABLED',
+    envKey: undefined,
     models: [
       { id: 'sonnet', name: 'Claude Sonnet (via CLI)', costPer1kInput: 0, costPer1kOutput: 0 },
       { id: 'opus', name: 'Claude Opus (via CLI)', costPer1kInput: 0, costPer1kOutput: 0 },
@@ -202,7 +202,7 @@ export const EXTRACTION_PROVIDERS: Record<string, ProviderConfig> = {
   },
   codex: {
     displayName: 'OpenAI Codex (CLI)',
-    envKey: 'CODEX_ENABLED',
+    envKey: undefined,
     models: [
       { id: 'codex', name: 'Codex CLI', costPer1kInput: 0, costPer1kOutput: 0 },
     ],
@@ -276,18 +276,16 @@ export async function detectAvailableProviders(): Promise<string[]> {
   for (const [key, config] of Object.entries(EXTRACTION_PROVIDERS)) {
     const cliBinary = CLI_PROVIDERS[key];
     if (cliBinary) {
-      if (process.env[config.envKey] === 'true') {
-        try {
-          const { execSync } = await import('child_process');
-          execSync(`which ${cliBinary}`, { stdio: 'ignore' });
-          available.push(key);
-        } catch {
-          // CLI not found
-        }
+      try {
+        const { execSync } = await import('child_process');
+        execSync(`which ${cliBinary}`, { stdio: 'ignore' });
+        available.push(key);
+      } catch {
+        // CLI not found
       }
       continue;
     }
-    if (process.env[config.envKey]) {
+    if (config.envKey && process.env[config.envKey]) {
       available.push(key);
     }
   }
