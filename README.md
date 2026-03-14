@@ -226,6 +226,8 @@ fairtrail --headless --view <id> --tmux           # Split grouped routes into tm
 
 Without `--headless`, `--view` opens the chart in your browser and `--list` opens the admin dashboard.
 
+<img src="packages/cli/demo/fairtrail-demo.gif" alt="Fairtrail CLI — Claude Code vs Codex side by side, search and live price charts" width="100%">
+
 ### Features
 
 - **Natural language search** — same as the web, powered by your chosen AI backend
