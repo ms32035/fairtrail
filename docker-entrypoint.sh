@@ -63,7 +63,7 @@ echo "[setup] Schema ready"
 # The installer mounts host ~/.claude and ~/.codex as read-only at *-host paths.
 # CLIs need write access (models cache, sessions), so we copy into writable dirs.
 if [ -d /home/node/.claude-host ] && [ "$(ls -A /home/node/.claude-host 2>/dev/null)" ]; then
-  cp -a /home/node/.claude-host/. /home/node/.claude/
+  cp -r /home/node/.claude-host/. /home/node/.claude/ 2>/dev/null || true
   echo "[setup] Copied Claude Code auth from host"
 fi
 if [ -f /home/node/.claude-host.json ]; then
@@ -71,7 +71,7 @@ if [ -f /home/node/.claude-host.json ]; then
   echo "[setup] Copied Claude credentials file from host"
 fi
 if [ -d /home/node/.codex-host ] && [ "$(ls -A /home/node/.codex-host 2>/dev/null)" ]; then
-  cp -a /home/node/.codex-host/. /home/node/.codex/
+  cp -r /home/node/.codex-host/. /home/node/.codex/ 2>/dev/null || true
   echo "[setup] Copied Codex auth from host"
 fi
 
