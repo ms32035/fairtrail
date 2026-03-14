@@ -279,8 +279,7 @@ async function hasCliAuth(provider: string): Promise<boolean> {
 
   switch (provider) {
     case 'codex':
-      return existsSync(join(home, '.codex', 'auth.json'))
-        || !!process.env.OPENAI_API_KEY;
+      return existsSync(join(home, '.codex', 'auth.json'));
     case 'claude-code':
       return existsSync(join(home, '.claude.json'))
         || existsSync(join(home, '.claude', 'credentials.json'));

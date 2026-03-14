@@ -86,19 +86,6 @@ if [ "${SELF_HOSTED:-true}" = "true" ]; then
     fi
   fi
 
-  # Fallback: generate codex auth from OPENAI_API_KEY if no auth.json exists
-  if [ -n "$OPENAI_API_KEY" ] && [ ! -f /home/node/.codex/auth.json ]; then
-    node -e "
-      const fs = require('fs');
-      fs.writeFileSync('/home/node/.codex/auth.json', JSON.stringify({
-        auth_mode: 'api_key',
-        OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-        tokens: null
-      }));
-    "
-    echo "[setup] Generated Codex auth from OPENAI_API_KEY"
-  fi
-
   # Install CLI providers (cached in cli-cache volume)
   if ! command -v claude >/dev/null 2>&1; then
     echo "[setup] Installing Claude Code CLI..."

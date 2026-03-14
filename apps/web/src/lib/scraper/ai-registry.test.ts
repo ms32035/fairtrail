@@ -91,16 +91,6 @@ describe('ai-registry', () => {
       expect(providers).not.toContain('claude-code');
     });
 
-    it('detects codex when binary exists and OPENAI_API_KEY is set (no auth.json)', async () => {
-      process.env.OPENAI_API_KEY = 'sk-test';
-      mockExecSync.mockReturnValue(Buffer.from('/usr/local/bin/codex'));
-      mockExistsSync.mockReturnValue(false);
-
-      const providers = await detectAvailableProviders();
-
-      expect(providers).toContain('codex');
-    });
-
     it('skips CLI providers when binary is not found', async () => {
       mockExecSync.mockImplementation(() => {
         throw new Error('not found');
