@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import styles from './page.module.css';
 import { EXTRACTION_PROVIDERS, LOCAL_PROVIDERS } from '@/lib/scraper/ai-registry';
 
@@ -24,6 +24,36 @@ export default function SetupPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const [localModels, setLocalModels] = useState<{ id: string; name: string; size: string }[]>([]);
+  const [localModelsLoading, setLocalModelsLoading] = useState(false);
+  const [localModelsError, setLocalModelsError] = useState('');
+
+  const fetchLocalModels = useCallback((p: string) => {
+    if (!LOCAL_PROVIDERS.has(p)) {
+      setLocalModels([]);
+      setLocalModelsError('');
+      return;
+    }
+    setLocalModelsLoading(true);
+    setLocalModelsError('');
+    fetch(`/api/admin/local-models?provider=${p}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.ok) {
+          setLocalModels(d.data);
+          if (d.data.length > 0) setModel(d.data[0].id);
+        } else {
+          setLocalModels([]);
+          setLocalModelsError(d.error || 'Failed to fetch models');
+        }
+      })
+      .catch(() => {
+        setLocalModels([]);
+        setLocalModelsError('Could not connect');
+      })
+      .finally(() => setLocalModelsLoading(false));
+  }, []);
+
   useEffect(() => {
     fetch('/api/setup/status')
       .then((r) => r.json())
@@ -43,6 +73,7 @@ export default function SetupPage() {
           if (providerConfig?.models[0]) {
             setModel(providerConfig.models[0].id);
           }
+          fetchLocalModels(defaultProvider);
         }
       });
   }, []);
@@ -167,6 +198,7 @@ export default function SetupPage() {
                       setCustomBaseUrl(config.defaultBaseUrl ?? '');
                       if (config.models[0]) setModel(config.models[0].id);
                       else setModel('');
+                      fetchLocalModels(key);
                     }}
                   >
                     <span className={styles.providerName}>{config.displayName}</span>
@@ -204,12 +236,33 @@ export default function SetupPage() {
                     ))}
                   </select>
                 )}
+                {EXTRACTION_PROVIDERS[provider]!.models.length === 0 && localModels.length > 0 && (
+                  <select
+                    className={styles.input}
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                  >
+                    {localModels.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name}{m.size ? ` (${m.size})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {EXTRACTION_PROVIDERS[provider]!.models.length === 0 && localModelsLoading && (
+                  <span className={styles.hint}>Fetching models...</span>
+                )}
+                {EXTRACTION_PROVIDERS[provider]!.models.length === 0 && localModelsError && (
+                  <span className={styles.hintError}>{localModelsError}</span>
+                )}
                 {EXTRACTION_PROVIDERS[provider]!.allowCustomModel && (
                   <input
                     type="text"
                     className={styles.input}
-                    placeholder="Model ID (e.g. llama3.1:8b, mistral:7b)"
-                    value={model}
+                    placeholder={localModels.length > 0
+                      ? 'Or type a custom model ID'
+                      : 'Model ID (e.g. llama3.1:8b, mistral:7b)'}
+                    value={EXTRACTION_PROVIDERS[provider]!.models.length === 0 && localModels.length === 0 ? model : ''}
                     onChange={(e) => setModel(e.target.value)}
                   />
                 )}
