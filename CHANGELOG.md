@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.3.6] - 2026-03-17
+
+### Added
+- Dynamic model discovery for Ollama and llama.cpp. Config pages now fetch installed models from the local instance and show them in a dropdown instead of an empty select ([#9](https://github.com/affromero/fairtrail/issues/9))
+- New `/api/admin/local-models` endpoint with Redis caching (5min TTL) for querying Ollama `/api/tags` and llama.cpp `/v1/models`
+- Installer now detects Ollama running locally, lists available models, and writes Docker-compatible `OLLAMA_HOST` (`host.docker.internal`)
+- `extra_hosts` for `host.docker.internal` in Docker Compose so containers can reach host-local services on Linux
+
+### Fixed
+- Empty model dropdown when selecting Ollama or llama.cpp in admin config, settings, and setup pages
+- Installer no longer requires a paid API key when Ollama is available
+- Ollama API `parameter_size` read from `details.parameter_size` (not top-level), fixing incorrect model size display
+- Race condition in setup wizard where async model fetch could overwrite user-typed model ID
+- Client-side validation prevents saving with an empty model ID
+- Stale model list no longer shown alongside "Fetching models..." during provider switch
+
 ## [0.3.5] - 2026-03-17
 
 ### Added
