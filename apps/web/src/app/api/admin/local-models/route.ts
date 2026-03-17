@@ -7,7 +7,7 @@ import { LOCAL_PROVIDERS } from '@/lib/scraper/ai-registry';
 interface OllamaModel {
   name: string;
   size: number;
-  parameter_size?: string;
+  details?: { parameter_size?: string };
 }
 
 interface OllamaTagsResponse {
@@ -56,7 +56,7 @@ async function fetchOllamaModels(host: string): Promise<LocalModel[]> {
   return (data.models ?? []).map((m) => ({
     id: m.name,
     name: m.name,
-    size: m.parameter_size || formatSize(m.size),
+    size: m.details?.parameter_size || formatSize(m.size),
   }));
 }
 

@@ -52,8 +52,8 @@ describe('GET /api/admin/local-models', () => {
       ok: true,
       json: () => Promise.resolve({
         models: [
-          { name: 'llama3.1:8b', size: 4_800_000_000, parameter_size: '8B' },
-          { name: 'mistral:7b', size: 4_100_000_000, parameter_size: '7B' },
+          { name: 'llama3.1:8b', size: 4_800_000_000, details: { parameter_size: '8B' } },
+          { name: 'mistral:7b', size: 4_100_000_000, details: { parameter_size: '7B' } },
         ],
       }),
     });
