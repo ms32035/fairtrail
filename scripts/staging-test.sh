@@ -67,8 +67,6 @@ printf "${DIM}Commit: ${LOCAL_SHA} ${LOCAL_MSG}${RESET}\n"
 echo ""
 
 BRANCH=$(git branch --show-current)
-printf "${DIM}Pushing ${BRANCH} to origin...${RESET}\n"
-git push -u origin "$BRANCH" 2>&1 | tail -2
 
 # Build SSH command
 SSH_CMD="ssh"
