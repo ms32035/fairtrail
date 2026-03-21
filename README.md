@@ -320,6 +320,14 @@ That said, automated access to third-party websites may conflict with their term
 
 This software is provided as-is for personal and educational use.
 
+## Related Projects
+
+| Project | Description |
+|---------|-------------|
+| [**PriceToken**](https://github.com/affromero/pricetoken) | Real-time LLM pricing API, npm/PyPI packages, and live dashboard |
+| [**gitpane**](https://github.com/affromero/gitpane) | Multi-repo Git workspace dashboard for the terminal |
+| [**kin3o**](https://github.com/affromero/kin3o) | AI-powered Lottie animation generator CLI |
+
 ## License
 
 MIT
